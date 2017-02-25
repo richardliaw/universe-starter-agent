@@ -269,6 +269,7 @@ process grabs a rollout that's been produced by the thread runner,
 and updates the parameters.  The update is then sent to the parameter
 server.
 """
+        info = {}
         info["s_sync"] = timestamp()
         sess.run(self.sync)  # copy weights from shared to local
         info["d_sync"] = timestamp()
@@ -303,8 +304,8 @@ server.
         self.local_steps += 1
 
         log_str = []
-        log_str.append("Ship pct: %.2f" % ((info['start'] - info['launch'])))
-        log_str.append("Pull Rollout pct: %.2f" % ((info['pull'] - info['dsync'])))
+        log_str.append("Ship pct: %.2f" % ((info['d_sync'] - info['s_sync'])))
+        log_str.append("Pull Rollout pct: %.2f" % ((info['pull'] - info['d_sync'])))
         log_str.append("Grad/Send/Apply pct: %.2f" % ((info['grad_ship_apply'] - info['pull'])))
         print(" ".join(log_str))
 
