@@ -295,7 +295,19 @@ server.
             self.local_network.state_in[0]: batch.features[0],
             self.local_network.state_in[1]: batch.features[1],
         }
-        fetched = sess.run(fetches, feed_dict=feed_dict)
+
+        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
+        fetched = sess.run(fetches, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
+
+        # Create the Timeline object, and write it to a json
+        tl = timeline.Timeline(run_metadata.step_stats)
+        ctf = tl.generate_chrome_trace_format()
+        with open('timeline_%d.json' % self.local_steps, 'w') as f:
+            f.write(ctf)
+
+
+        # fetched = sess.run(fetches, feed_dict=feed_dict)
         info["grad_ship_apply"] = timestamp()
 
         if should_compute_summary:
