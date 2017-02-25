@@ -2,6 +2,7 @@ from __future__ import print_function
 from collections import namedtuple
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.client import timeline
 from model import LSTMPolicy
 import six.moves.queue as queue
 import scipy.signal
