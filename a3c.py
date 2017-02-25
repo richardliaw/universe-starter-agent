@@ -8,6 +8,10 @@ import scipy.signal
 import threading
 import distutils.version
 use_tf12_api = distutils.version.LooseVersion(tf.VERSION) >= distutils.version.LooseVersion('0.12.0')
+from datetime import datetime
+
+def timestamp():
+    return datetime.now().timestamp()
 
 def discount(x, gamma):
     return scipy.signal.lfilter([1], [1, -gamma], x[::-1], axis=0)[::-1]
@@ -265,10 +269,15 @@ process grabs a rollout that's been produced by the thread runner,
 and updates the parameters.  The update is then sent to the parameter
 server.
 """
-
+        info["s_sync"] = timestamp()
         sess.run(self.sync)  # copy weights from shared to local
+        info["d_sync"] = timestamp()
+
         rollout = self.pull_batch_from_queue()
+
         batch = process_rollout(rollout, gamma=0.99, lambda_=1.0)
+        info["pull"] = timestamp()
+
 
         should_compute_summary = self.task == 0 and self.local_steps % 11 == 0
 
@@ -285,10 +294,17 @@ server.
             self.local_network.state_in[0]: batch.features[0],
             self.local_network.state_in[1]: batch.features[1],
         }
-
         fetched = sess.run(fetches, feed_dict=feed_dict)
+        info["grad_ship_apply"] = timestamp()
 
         if should_compute_summary:
             self.summary_writer.add_summary(tf.Summary.FromString(fetched[0]), fetched[-1])
             self.summary_writer.flush()
         self.local_steps += 1
+
+        log_str = []
+        log_str.append("Ship pct: %.2f" % ((info['start'] - info['launch'])))
+        log_str.append("Pull Rollout pct: %.2f" % ((info['pull'] - info['dsync'])))
+        log_str.append("Grad/Send/Apply pct: %.2f" % ((info['grad_ship_apply'] - info['pull'])))
+        print(" ".join(log_str))
+
