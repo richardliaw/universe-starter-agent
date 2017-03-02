@@ -63,7 +63,7 @@ def run(args, server):
                              init_fn=init_fn,
                              summary_writer=summary_writer,
                              ready_op=tf.report_uninitialized_variables(variables_to_save),
-                             global_step=trainer.global_step,
+                             global_step=trainer.grad_step,
                              save_model_secs=30,
                              save_summaries_secs=30)
 
@@ -79,6 +79,8 @@ def run(args, server):
         while not sv.should_stop() and (not num_global_steps or global_step < num_global_steps):
             trainer.process(sess)
             global_step = sess.run(trainer.global_step)
+            if global_step % 50 == 0:
+                print("Global step %d" % global_step)
 
     # Ask for all the services to stop.
     sv.stop()

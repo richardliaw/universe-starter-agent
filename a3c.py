@@ -138,7 +138,8 @@ runner appends the policy to the queue.
                 summary = tf.Summary()
                 for k, v in info.items():
                     summary.value.add(tag=k, simple_value=float(v))
-                summary_writer.add_summary(summary, policy.global_step.eval())
+                # summary_writer.add_summary(summary, policy.global_step.eval())
+                summary_writer.add_summary(summary, policy.grad_step.eval())
                 summary_writer.flush()
 
             timestep_limit = env.spec.tags.get('wrapper_config.TimeLimit.max_episode_steps')
@@ -175,11 +176,14 @@ should be computed.
                 self.network = LSTMPolicy(env.observation_space.shape, env.action_space.n)
                 self.global_step = tf.get_variable("global_step", [], tf.int32, initializer=tf.constant_initializer(0, dtype=tf.int32),
                                                    trainable=False)
+                self.grad_step = tf.get_variable("grad_step", [], tf.int32, initializer=tf.constant_initializer(0, dtype=tf.int32),
+                                                   trainable=False)
 
         with tf.device(worker_device):
             with tf.variable_scope("local"):
                 self.local_network = pi = LSTMPolicy(env.observation_space.shape, env.action_space.n)
                 pi.global_step = self.global_step
+                pi.grad_step = self.grad_step
 
             self.ac = tf.placeholder(tf.float32, [None, env.action_space.n], name="ac")
             self.adv = tf.placeholder(tf.float32, [None], name="adv")
@@ -236,10 +240,11 @@ should be computed.
 
             grads_and_vars = list(zip(grads, self.network.var_list))
             inc_step = self.global_step.assign_add(tf.shape(pi.x)[0])
+            inc_grad_step = self.grad_step.assign_add(1)
 
             # each worker has a different set of adam optimizer parameters
             opt = tf.train.AdamOptimizer(1e-4)
-            self.train_op = tf.group(opt.apply_gradients(grads_and_vars), inc_step)
+            self.train_op = tf.group(opt.apply_gradients(grads_and_vars), inc_step, inc_grad_step)
             self.summary_writer = None
             self.local_steps = 0
 
@@ -273,9 +278,9 @@ server.
         should_compute_summary = self.task == 0 and self.local_steps % 11 == 0
 
         if should_compute_summary:
-            fetches = [self.summary_op, self.train_op, self.global_step]
+            fetches = [self.summary_op, self.train_op, self.global_step, self.grad_step]
         else:
-            fetches = [self.train_op, self.global_step]
+            fetches = [self.train_op, self.global_step, self.grad_step]
 
         feed_dict = {
             self.local_network.x: batch.si,
