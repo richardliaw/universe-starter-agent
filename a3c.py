@@ -1,5 +1,6 @@
 from __future__ import print_function
 from collections import namedtuple
+import time
 import numpy as np
 import tensorflow as tf
 from model import LSTMPolicy
@@ -265,9 +266,9 @@ process grabs a rollout that's been produced by the thread runner,
 and updates the parameters.  The update is then sent to the parameter
 server.
 """
-
-        sess.run(self.sync)  # copy weights from shared to local
-        rollout = self.pull_batch_from_queue()
+        timing = []
+        timing.append(time.time()); sess.run(self.sync)  # copy weights from shared to local
+        timing.append(time.time()); rollout = self.pull_batch_from_queue()
         batch = process_rollout(rollout, gamma=0.99, lambda_=1.0)
 
         should_compute_summary = self.task == 0 and self.local_steps % 11 == 0
@@ -286,9 +287,11 @@ server.
             self.local_network.state_in[1]: batch.features[1],
         }
 
-        fetched = sess.run(fetches, feed_dict=feed_dict)
+        timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict)
+        timing.append(time.time());
 
         if should_compute_summary:
             self.summary_writer.add_summary(tf.Summary.FromString(fetched[0]), fetched[-1])
             self.summary_writer.flush()
         self.local_steps += 1
+        return timing
