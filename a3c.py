@@ -286,12 +286,17 @@ server.
             self.local_network.state_in[0]: batch.features[0],
             self.local_network.state_in[1]: batch.features[1],
         }
+        options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
 
-        timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict)
+        timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict, options=options, run_metadata=run_metadata)
         timing.append(time.time());
 
         if should_compute_summary:
             self.summary_writer.add_summary(tf.Summary.FromString(fetched[0]), fetched[-1])
             self.summary_writer.flush()
         self.local_steps += 1
-        return timing
+        info = {}
+        info['metadata'] = run_metadata
+        info['timing'] = timing
+        return info

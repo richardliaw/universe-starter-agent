@@ -79,16 +79,23 @@ def run(args, server):
         global_step = sess.run(trainer.global_step)
         logger.info("Starting training at step=%d", global_step)
         all_times = []
+        from tensorflow.python.client import timeline
         # while not sv.should_stop() and (not num_global_steps or global_step < num_global_steps):
         while trainer.local_steps < 200:
-            timing = trainer.process(sess)
+            info = trainer.process(sess)
             global_step = sess.run(trainer.global_step)
-            all_times.append(timing)
+            all_times.append(info['timing'])
+            run_metadata = info['metadata']
+            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+            chrome_trace = fetched_timeline.generate_chrome_trace_format()
+            if trainer.local_steps % 50 == 1:
+                with open(os.path.join(args.log_dir, 'result%d_%d.json' % (args.task, trainer.local_steps)), 'w') as f:
+                    f.write(chrome_trace)
 
     # Ask for all the services to stop.
-    import pickle
-    with open(os.path.join(args.log_dir, 'result%d.p' % args.task), 'wb') as f:
-        pickle.dump(all_times, f)
+    # import pickle
+    # with open(os.path.join(args.log_dir, 'result%d.p' % args.task), 'wb') as f:
+    #     pickle.dump(all_times, f)
     sv.stop()
     logger.info('reached %s steps. worker stopped.', global_step)
 
