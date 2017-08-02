@@ -39,7 +39,6 @@ def main():
                         help="Visualise the gym environment by running env.render() between each timestep")
     args = parser.parse_args()
 
-    import ipdb; ipdb.set_trace()  # breakpoint eef6eece //
     args.job_name = "server"
     args.task = 0
     server = start.remote(args)
