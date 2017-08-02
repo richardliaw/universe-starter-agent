@@ -38,6 +38,7 @@ def main():
     parser.add_argument('--visualise', action='store_true',
                         help="Visualise the gym environment by running env.render() between each timestep")
     args = parser.parse_args()
+    ray.init(num_workers=args.num_workers + 1)
 
     args.job_name = "server"
     args.task = 0
@@ -46,7 +47,7 @@ def main():
     workers = []
     args.jobname = "worker"
     for i in range(args.num_workers):
-        args.task = i + 1
+        args.task = i
         workers.append(start.remote(args))
 
     ray.get(server)
