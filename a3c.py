@@ -297,15 +297,15 @@ server.
             self.local_network.state_in[1]: batch.features[1],
         }
 
-        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-        run_metadata = tf.RunMetadata()
+        run_options = None #tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = None #tf.RunMetadata()
         fetched = sess.run(fetches, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
 
         # Create the Timeline object, and write it to a json
-        tl = timeline.Timeline(run_metadata.step_stats)
-        ctf = tl.generate_chrome_trace_format()
-        with open('timeline_%d.json' % self.local_steps, 'w') as f:
-            f.write(ctf)
+        #tl = timeline.Timeline(run_metadata.step_stats)
+        #ctf = tl.generate_chrome_trace_format()
+        #with open('timeline_%d.json' % self.local_steps, 'w') as f:
+        #    f.write(ctf)
 
 
         # fetched = sess.run(fetches, feed_dict=feed_dict)

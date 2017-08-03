@@ -8,13 +8,13 @@ from six.moves import shlex_quote
 
 import cv2
 import go_vncdriver
-import tensorflow as tf
 import logging
 import signal
 import time
 from a3c import A3C
 from envs import create_env
 import distutils.version
+import tensorflow as tf
 
 from worker import run, FastSaver, cluster_spec
 use_tf12_api = distutils.version.LooseVersion(tf.VERSION) >= distutils.version.LooseVersion('0.12.0')
@@ -43,9 +43,8 @@ def main():
     args.job_name = "server"
     args.task = 0
     server = start.remote(args)
-
     workers = []
-    args.jobname = "worker"
+    args.job_name = "worker"
     for i in range(args.num_workers):
         args.task = i
         workers.append(start.remote(args))
