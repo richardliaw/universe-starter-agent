@@ -300,4 +300,6 @@ server.
         info['metadata'] = run_metadata
         info['timing'] = timing
         info["time_of_iteration"] = timing[-1] - timing[0]
+        info["sync"] = timing[1] - timing[0]
+        info["apply"] = timing[-1] - timing[-2]
         return info
