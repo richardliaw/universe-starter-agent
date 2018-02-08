@@ -83,7 +83,7 @@ def run(args, server):
         starting_step = sess.run(trainer.global_step)
         init_time = time.time()
         starting_time = None
-        while trainer.local_steps < 200:
+        while True: # trainer.local_steps < 200:
             info = trainer.process(sess)
             cur_time = time.time()
             global_step = sess.run(trainer.global_step)
@@ -94,8 +94,8 @@ def run(args, server):
                 logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
             all_times.append(info['timing'])
             run_metadata = info['metadata']
-            if global_step - starting_step > 1000:
-                break
+            #if global_step - starting_step > 1000:
+            #    break
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
             # chrome_trace = fetched_timeline.generate_chrome_trace_format()
             # if trainer.local_steps % 50 == 1:
