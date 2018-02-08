@@ -84,7 +84,7 @@ def run(args, server):
         while trainer.local_steps < 200:
             info = trainer.process(sess)
             global_step = sess.run(trainer.global_step)
-            print("Current grad steps", global_step)
+            logger.info("Current grad steps", global_step)
             all_times.append(info['timing'])
             run_metadata = info['metadata']
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
