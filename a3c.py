@@ -287,9 +287,9 @@ server.
             self.local_network.state_in[1]: batch.features[1],
         }
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-        run_metadata = tf.RunMetadata()
+        # run_metadata = tf.RunMetadata()
 
-        timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict, options=options, run_metadata=run_metadata)
+        timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict) #, options=options, run_metadata=run_metadata)
         timing.append(time.time());
 
         # if should_compute_summary:
