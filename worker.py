@@ -103,7 +103,6 @@ def run(args, server):
                 logger.info("Avg Time of iteration: %f", np.mean(all_times["total"]))
                 logger.info("Avg Time of sync: %f", np.mean(all_times["sync"]))
                 logger.info("Avg Time of apply: %f", np.mean(all_times["apply"]))
-            run_metadata = info['metadata']
             #if global_step - starting_step > 1000:
             #    break
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
