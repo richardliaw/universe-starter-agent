@@ -11,6 +11,7 @@ import os
 from a3c import A3C
 from envs import create_env
 import distutils.version
+import numpy as np
 use_tf12_api = distutils.version.LooseVersion(tf.VERSION) >= distutils.version.LooseVersion('0.12.0')
 
 logger = logging.getLogger(__name__)
@@ -84,7 +85,10 @@ def run(args, server):
         init_time = time.time()
         starting_time = None
         while True: # trainer.local_steps < 200:
+
             info = trainer.process(sess)
+            all_times.append(info['time_of_iteration'])
+
             cur_time = time.time()
             global_step = sess.run(trainer.global_step)
             if cur_time - init_time > 30 and starting_time is None:
@@ -92,7 +96,9 @@ def run(args, server):
                 starting_step = global_step
             if starting_time:
                 logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
-            all_times.append(info['timing'])
+
+            if global_step % 5 == 0:
+                logger.info("Avg Time of iteration: %f", np.mean(all_times))
             run_metadata = info['metadata']
             #if global_step - starting_step > 1000:
             #    break
