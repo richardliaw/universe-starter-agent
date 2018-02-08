@@ -79,7 +79,6 @@ def run(args, server):
         global_step = sess.run(trainer.global_step)
         logger.info("Starting training at step=%d", global_step)
         all_times = {"total": [], "sync": [], "apply": []}
-        from tensorflow.python.client import timeline
         # while not sv.should_stop() and (not num_global_steps or global_step < num_global_steps):
         starting_step = sess.run(trainer.global_step)
         init_time = time.time()
@@ -87,9 +86,9 @@ def run(args, server):
         while True: # trainer.local_steps < 200:
 
             info = trainer.process(sess)
-            all_times["total"].append(info['time_of_iteration'])
-            all_times["sync"].append(info['sync'])
-            all_times["apply"].append(info['apply'])
+            # all_times["total"].append(info['time_of_iteration'])
+            # all_times["sync"].append(info['sync'])
+            # all_times["apply"].append(info['apply'])
 
             cur_time = time.time()
             global_step = sess.run(trainer.global_step)
@@ -99,12 +98,12 @@ def run(args, server):
             if starting_time:
                 logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
 
-            if global_step % 5 == 0:
-                logger.info("Avg Time of iteration: %f", np.mean(all_times["total"]))
-                logger.info("Avg Time of sync: %f", np.mean(all_times["sync"]))
-                logger.info("Avg Time of apply: %f", np.mean(all_times["apply"]))
-            #if global_step - starting_step > 1000:
-            #    break
+            # if global_step % 5 == 0:
+            #     logger.info("Avg Time of iteration: %f", np.mean(all_times["total"]))
+            #     logger.info("Avg Time of sync: %f", np.mean(all_times["sync"]))
+            #     logger.info("Avg Time of apply: %f", np.mean(all_times["apply"]))
+            if global_step - starting_step > 50000:
+                break
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
             # chrome_trace = fetched_timeline.generate_chrome_trace_format()
             # if trainer.local_steps % 50 == 1:
