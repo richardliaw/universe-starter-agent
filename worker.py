@@ -81,14 +81,21 @@ def run(args, server):
         from tensorflow.python.client import timeline
         # while not sv.should_stop() and (not num_global_steps or global_step < num_global_steps):
         starting_step = sess.run(trainer.global_step)
-        starting_time = time.time()
+        init_time = time.time()
+        starting_time = None
         while trainer.local_steps < 200:
             info = trainer.process(sess)
-            global_step = sess.run(trainer.global_step)
             cur_time = time.time()
-            logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
+            global_step = sess.run(trainer.global_step)
+            if cur_time - init_time > 30 and starting_time is None:
+                starting_time = time.time()
+                starting_step = global_step
+            if starting_time:
+                logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
             all_times.append(info['timing'])
             run_metadata = info['metadata']
+            if global_step - starting_step > 1000:
+                break
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
             # chrome_trace = fetched_timeline.generate_chrome_trace_format()
             # if trainer.local_steps % 50 == 1:
@@ -101,6 +108,8 @@ def run(args, server):
     #     pickle.dump(all_times, f)
     sv.stop()
     logger.info('reached %s steps. worker stopped.', global_step)
+    import subprocess
+    subprocess.call(["bash", "/tmp/pong/kill.sh"])
 
 def cluster_spec(num_workers, num_ps):
     """
