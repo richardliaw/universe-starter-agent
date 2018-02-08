@@ -81,10 +81,13 @@ def run(args, server):
         all_times = []
         from tensorflow.python.client import timeline
         # while not sv.should_stop() and (not num_global_steps or global_step < num_global_steps):
+        starting_step = sess.run(trainer.global_step)
+        starting_time = time.time()
         while trainer.local_steps < 200:
             info = trainer.process(sess)
             global_step = sess.run(trainer.global_step)
-            logger.info("Current grad steps", global_step)
+            cur_time = time.time()
+            logger.info("Throughput: %d", (global_step - starting_step) / (cur_time - starting_time))
             all_times.append(info['timing'])
             run_metadata = info['metadata']
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
