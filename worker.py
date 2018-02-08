@@ -84,13 +84,14 @@ def run(args, server):
         while trainer.local_steps < 200:
             info = trainer.process(sess)
             global_step = sess.run(trainer.global_step)
+            print(global_step)
             all_times.append(info['timing'])
             run_metadata = info['metadata']
-            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
-            chrome_trace = fetched_timeline.generate_chrome_trace_format()
-            if trainer.local_steps % 50 == 1:
-                with open(os.path.join(args.log_dir, 'result%d_%d.json' % (args.task, trainer.local_steps)), 'w') as f:
-                    f.write(chrome_trace)
+            # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+            # chrome_trace = fetched_timeline.generate_chrome_trace_format()
+            # if trainer.local_steps % 50 == 1:
+            #     with open(os.path.join(args.log_dir, 'result%d_%d.json' % (args.task, trainer.local_steps)), 'w') as f:
+            #         f.write(chrome_trace)
 
     # Ask for all the services to stop.
     # import pickle
