@@ -236,7 +236,7 @@ should be computed.
             self.sync = tf.group(*[v1.assign(v2) for v1, v2 in zip(pi.var_list, self.network.var_list)])
 
             grads_and_vars = list(zip(grads, self.network.var_list))
-            inc_step = self.global_step.assign_add(tf.shape(pi.x)[0])
+            inc_step = self.global_step.assign_add(1) #tf.shape(pi.x)[0])
 
             # each worker has a different set of adam optimizer parameters
             opt = tf.train.AdamOptimizer(1e-4)
@@ -273,10 +273,10 @@ server.
 
         should_compute_summary = self.task == 0 and self.local_steps % 11 == 0
 
-        if should_compute_summary:
-            fetches = [self.summary_op, self.train_op, self.global_step]
-        else:
-            fetches = [self.train_op, self.global_step]
+        # if should_compute_summary:
+        #     fetches = [self.summary_op, self.train_op, self.global_step]
+        # else:
+        fetches = [self.train_op, self.global_step]
 
         feed_dict = {
             self.local_network.x: batch.si,
@@ -292,9 +292,9 @@ server.
         timing.append(time.time()); fetched = sess.run(fetches, feed_dict=feed_dict, options=options, run_metadata=run_metadata)
         timing.append(time.time());
 
-        if should_compute_summary:
-            self.summary_writer.add_summary(tf.Summary.FromString(fetched[0]), fetched[-1])
-            self.summary_writer.flush()
+        # if should_compute_summary:
+        #     self.summary_writer.add_summary(tf.Summary.FromString(fetched[0]), fetched[-1])
+        #     self.summary_writer.flush()
         self.local_steps += 1
         info = {}
         info['metadata'] = run_metadata
