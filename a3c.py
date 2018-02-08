@@ -297,7 +297,6 @@ server.
         #     self.summary_writer.flush()
         self.local_steps += 1
         info = {}
-        info['metadata'] = run_metadata
         info['timing'] = timing
         info["time_of_iteration"] = timing[-1] - timing[0]
         info["sync"] = timing[1] - timing[0]
