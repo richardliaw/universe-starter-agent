@@ -65,8 +65,7 @@ def run(args, server):
                              summary_writer=summary_writer,
                              ready_op=tf.report_uninitialized_variables(variables_to_save),
                              global_step=trainer.global_step,
-                             save_model_secs=30,
-                             save_summaries_secs=30)
+                             )
 
     num_global_steps = 100000000
 
@@ -87,7 +86,7 @@ def run(args, server):
             info = trainer.process(sess)
             global_step = sess.run(trainer.global_step)
             cur_time = time.time()
-            logger.info("Throughput: %d", (global_step - starting_step) / (cur_time - starting_time))
+            logger.info("Throughput: %f", (global_step - starting_step) * 1. / (cur_time - starting_time))
             all_times.append(info['timing'])
             run_metadata = info['metadata']
             # fetched_timeline = timeline.Timeline(run_metadata.step_stats)
