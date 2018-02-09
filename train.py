@@ -34,14 +34,16 @@ def new_cmd(session, name, cmd, mode, logdir, shell):
         return name, "nohup {} -c {} >{}/{}.{}.out 2>&1 & echo kill $! >>{}/kill.sh".format(shell, shlex_quote(cmd), logdir, session, name, logdir)
 
 
-def create_commands(session, num_workers, remotes, env_id, logdir, shell='bash', mode='tmux', visualise=False):
+def create_commands(session, num_workers, num_ps, remotes, env_id, logdir, shell='bash', mode='tmux', visualise=False):
     # for launching the TF workers and for launching tensorboard
     base_cmd = [
         'CUDA_VISIBLE_DEVICES=',
         sys.executable, 'worker.py',
         '--log-dir', logdir,
         '--env-id', env_id,
-        '--num-workers', str(num_workers)]
+        '--num-workers', str(num_workers),
+        '--num-ps', str(num_ps),
+        ]
 
     if visualise:
         base_cmd += ['--visualise']
@@ -52,7 +54,9 @@ def create_commands(session, num_workers, remotes, env_id, logdir, shell='bash',
         remotes = remotes.split(',')
         assert len(remotes) == num_workers
 
-    cmds_map = [new_cmd(session, "ps", base_cmd + ["--job-name", "ps"], mode, logdir, shell)]
+    cmds_map = []
+    for j in range(num_ps):
+        cmds_map += [new_cmd(session, "ps-%d" % j, base_cmd + ["--job-name", "ps", "--task", str(j),], mode, logdir, shell)]
     for i in range(num_workers):
         cmds_map += [new_cmd(session,
             "w-%d" % i, base_cmd + ["--job-name", "worker", "--task", str(i), "--remotes", remotes[i]], mode, logdir, shell)]
@@ -81,7 +85,7 @@ def create_commands(session, num_workers, remotes, env_id, logdir, shell='bash',
     if mode == 'tmux':
         cmds += [
         "kill $( lsof -i:12345 -t ) > /dev/null 2>&1",  # kill any process using tensorboard's port
-        "kill $( lsof -i:12222-{} -t ) > /dev/null 2>&1".format(num_workers+12222), # kill any processes using ps / worker ports
+        "kill $( lsof -i:12222-{} -t ) > /dev/null 2>&1".format(num_workers + num_ps +12222), # kill any processes using ps / worker ports
         "tmux kill-session -t {}".format(session),
         "tmux new-session -s {} -n {} -d {}".format(session, windows[0], shell)
         ]
